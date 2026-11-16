@@ -16,7 +16,7 @@ def tampilkan_data():
     
     print(fileDB.to_string(index=False))
     return fileDB
-tampilkan_data()
+fileDB = tampilkan_data()
 
 pilihan = int(input("\nMasukkan nomor barang: "))
 if pilihan in fileDB["No"].values:
@@ -55,7 +55,7 @@ if pilihan in fileDB["No"].values:
         if konfirmasi.upper() == "Y":
 
             # Mengurangi stok barang
-            fileDB.loc[index_barang, "stok"] -= jumlah
+            fileDB.loc[index_barang, "Stok"] -= jumlah
 
             # Menyimpan perubahan ke CSV
             fileDB.to_csv(
@@ -64,7 +64,7 @@ if pilihan in fileDB["No"].values:
             )
 
             print("\nPesanan berhasil dikonfirmasi!")
-            print("Sisa stok:", fileDB.loc[index_barang, "stok"])
+            print("Sisa stok:", fileDB.loc[index_barang, "Stok"])
 
         else:
             print("Pesanan dibatalkan!")
