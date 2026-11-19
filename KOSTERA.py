@@ -5,7 +5,82 @@
 
 
 # VALE
+import os
 
+print("Lokasi program:", os.path.dirname(os.path.abspath(__file__)))
+print("Lokasi terminal:", os.getcwd())
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+print("File penghuni ditemukan:", os.path.exists("data_PENGHUNI.csv"))
+print("File pengaduan ditemukan:", os.path.exists("data_PENGADUAN.csv"))
+
+import pandas as pd
+
+filePenghuni = pd.read_csv("data_PENGHUNI.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
+filePengaduan = pd.read_csv("data_PENGADUAN.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
+
+pesanStatus = {
+    "Menunggu": "Pengaduan belum ditanggapi oleh ibu kos.",
+    "Diproses": "Ibu kos sedang menangani pengaduan ini.",
+    "Selesai": "Pengaduan sudah selesai ditangani oleh ibu kos."
+}
+
+print("\n========= LAYANAN PENGADUAN KOSTERA =========")
+print("1. Penghuni")
+print("2. Admin (Ibu Kos)")
+peran = input("\nPilih peran: ")
+
+# ================= PENGHUNI =================
+if peran == "1":
+    print("\n1. Buat pengaduan")
+    print("2. Cek status pengaduan")
+    menu = input("Pilih menu: ")
+
+    idPenghuni = input("Masukkan ID penghuni (contoh P001): ").strip().upper()
+
+    if idPenghuni in filePenghuni["ID_Penghuni"].values:
+
+        # Mengambil data penghuni yang login
+        index_penghuni = filePenghuni[
+            filePenghuni["ID_Penghuni"] == idPenghuni
+        ].index[0]
+
+        nama = filePenghuni.loc[index_penghuni, "Nama"]
+
+        # ---------- Buat pengaduan ----------
+        if menu == "1":
+            fasilitas = input("Fasilitas yang rusak: ")
+            deskripsi = input("Deskripsi kerusakan: ")
+
+            if fasilitas.strip() == "" or deskripsi.strip() == "":
+                print("Fasilitas dan deskripsi tidak boleh kosong!")
+
+            else:
+                # Membuat ID pengaduan baru (A001, A002, ...)
+                if filePengaduan.empty:
+                    nomor = 1
+                else:
+                    nomor = filePengaduan["ID_Pengaduan"].str[1:].astype(int).max() + 1
+
+                idBaru = f"A{nomor:03d}"
+
+                # Menambah pengaduan baru
+                filePengaduan.loc[len(filePengaduan)] = [
+                    idBaru, idPenghuni, nama, fasilitas, deskripsi, "Ya", "Menunggu"
+                ]
+
+                # Menyimpan perubahan ke CSV
+                filePengaduan.to_csv(
+                    "data_PENGADUAN.csv",
+                    index=False
+                )
+
+                print("\nPengaduan", idBaru, "berhasil dikirim!")
+                print("Status: Menunggu")
+
+        # ---------- Cek status pengaduan ----------
+        elif menu == "2":
+            hasil =
    
 # SAFFA
 import os
