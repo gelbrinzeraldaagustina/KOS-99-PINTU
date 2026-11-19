@@ -134,74 +134,101 @@ if __name__ == "__main__":
             print("Pilihan tidak valid!")
    
 # SAFFA
+import pandas as pd
 import os
 
-print("Lokasi program:", os.path.dirname(__file__))
-print("Lokasi terminal:", os.getcwd())
-print("File CSV ditemukan:", os.path.exists("data_barang.csv"))
+folder = os.path.dirname(__file__)
+
+file_barang = os.path.join(folder, "data_barang.csv")
+file_pesanan = os.path.join(folder, "data_pesanan.csv")
 
 
-import pandas as pd
+def tampilkan_barang():
+    data = pd.read_csv(file_barang)
 
-def tampilkan_data():
-    lokasi_file = os.path.join(os.path.dirname(__file__), "data_barang.csv")
-    fileDB = pd.read_csv(lokasi_file)
-    print("========= KATALOG BARANG =========")
-    
-    print(fileDB.to_string(index=False))
-    return fileDB
-fileDB = tampilkan_data()
+    print("\n========= DATA BARANG =========")
+    print(data.to_string(index=False))
 
-pilihan = int(input("\nMasukkan nomor barang: "))
-if pilihan in fileDB["No"].values:
-    jumlah = int(input("Masukkan jumlah pembelian: "))
 
-    # Mengambil data barang yang dipilih
-    index_barang = fileDB[
-        fileDB["No"] == pilihan
-    ].index[0]
+def tampilkan_pesanan():
+    pesanan = pd.read_csv(file_pesanan)
 
-    nama = fileDB.loc[index_barang, "Nama"]
-    harga = fileDB.loc[index_barang, "Harga"]
-    stok = fileDB.loc[index_barang, "Stok"]
+    print("\n========= DATA PESANAN =========")
+    print(pesanan.to_string(index=False))
 
-    # Memeriksa jumlah pembelian
-    if jumlah <= 0:
-        print("Jumlah pembelian tidak valid!")
 
-    elif jumlah > stok:
-        print("Stok barang tidak mencukupi!")
+def konfirmasi_pesanan():
 
-    else:
-        total = harga * jumlah
+    pesanan = pd.read_csv(file_pesanan)
+    barang = pd.read_csv(file_barang)
 
-        print("\n===== DETAIL PESANAN =====")
-        print("Nama barang:", nama)
-        print("Harga satuan: Rp", harga)
-        print("Jumlah:", jumlah)
-        print("Total harga: Rp", total)
+    tampilkan_pesanan()
 
-        # Konfirmasi admin
-        konfirmasi = input(
-            "\nKonfirmasi pesanan oleh admin (Y/N): "
-        )
+    pilihan = int(input("\nMasukkan ID pesanan: "))
 
-        if konfirmasi.upper() == "Y":
+    if pilihan in pesanan["ID"].values:
 
-            # Mengurangi stok barang
-            fileDB.loc[index_barang, "Stok"] -= jumlah
+        index_pesanan = pesanan[
+            pesanan["ID"] == pilihan
+        ].index[0]
 
-            # Menyimpan perubahan ke CSV
-            fileDB.to_csv(
-                "data_barang.csv",
-                index=False
-            )
+        status = pesanan.loc[index_pesanan, "Status"]
 
-            print("\nPesanan berhasil dikonfirmasi!")
-            print("Sisa stok:", fileDB.loc[index_barang, "Stok"])
+        if status != "Menunggu":
+            print("Pesanan sudah diproses!")
 
         else:
-            print("Pesanan dibatalkan!")
+            nomor_barang = pesanan.loc[index_pesanan, "No"]
+            jumlah = pesanan.loc[index_pesanan, "Jumlah"]
 
-else:
-    print("Nomor barang tidak ditemukan!")
+            index_barang = barang[
+                barang["No"] == nomor_barang
+            ].index[0]
+
+            stok = barang.loc[index_barang, "Stok"]
+
+            if jumlah > stok:
+                print("Stok tidak mencukupi!")
+                pesanan.loc[index_pesanan, "Status"] = "Ditolak"
+
+            else:
+                barang.loc[index_barang, "Stok"] -= jumlah
+
+                pesanan.loc[index_pesanan, "Status"] = "Dikonfirmasi"
+
+                print("Pesanan berhasil dikonfirmasi!")
+                print("Sisa stok:", barang.loc[index_barang, "Stok"])
+
+            barang.to_csv(file_barang, index=False)
+            pesanan.to_csv(file_pesanan, index=False)
+
+    else:
+        print("ID pesanan tidak ditemukan!")
+
+
+# PROGRAM UTAMA
+while True:
+
+    print("\n========= MENU ADMIN =========")
+    print("1. Lihat data barang")
+    print("2. Lihat pesanan")
+    print("3. Konfirmasi pesanan")
+    print("4. Keluar")
+
+    pilihan = input("Pilih menu: ")
+
+    if pilihan == "1":
+        tampilkan_barang()
+
+    elif pilihan == "2":
+        tampilkan_pesanan()
+
+    elif pilihan == "3":
+        konfirmasi_pesanan()
+
+    elif pilihan == "4":
+        print("Program admin selesai!")
+        break
+
+    else:
+        print("Pilihan tidak valid!")
