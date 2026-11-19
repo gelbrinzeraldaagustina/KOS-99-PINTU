@@ -6,8 +6,14 @@
 
 # VALE
 
-
+   
 # SAFFA
+import os
+
+print("Lokasi program:", os.path.dirname(__file__))
+print("Lokasi terminal:", os.getcwd())
+print("File CSV ditemukan:", os.path.exists("data_barang.csv"))
+
 import pandas as pd
 
 def tampilkan_data():
