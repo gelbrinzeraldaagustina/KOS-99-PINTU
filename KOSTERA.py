@@ -5,82 +5,133 @@
 
 
 # VALE
-import os
+import csv
 
-print("Lokasi program:", os.path.dirname(os.path.abspath(__file__)))
-print("Lokasi terminal:", os.getcwd())
+FILE_ADU = "data_PENGADUAN.csv"
+FILE_PENGHUNI = "data_PENGHUNI.csv"
+KOLOM = ["ID_Pengaduan", "ID_Penghuni", "Nama", "Fasilitas", "Deskripsi", "Identitas", "Status"]
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-print("File penghuni ditemukan:", os.path.exists("data_PENGHUNI.csv"))
-print("File pengaduan ditemukan:", os.path.exists("data_PENGADUAN.csv"))
 
-import pandas as pd
+def baca_csv(nama_file):
+    try:
+        with open(nama_file, newline="", encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+    except FileNotFoundError:
+        return []
 
-filePenghuni = pd.read_csv("data_PENGHUNI.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
-filePengaduan = pd.read_csv("data_PENGADUAN.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
 
-pesanStatus = {
-    "Menunggu": "Pengaduan belum ditanggapi oleh ibu kos.",
-    "Diproses": "Ibu kos sedang menangani pengaduan ini.",
-    "Selesai": "Pengaduan sudah selesai ditangani oleh ibu kos."
-}
+def simpan_pengaduan(data):
+    with open(FILE_ADU, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=KOLOM)
+        writer.writeheader()
+        writer.writerows(data)
 
-print("\n========= LAYANAN PENGADUAN KOSTERA =========")
-print("1. Penghuni")
-print("2. Admin (Ibu Kos)")
-peran = input("\nPilih peran: ")
 
-# ================= PENGHUNI =================
-if peran == "1":
-    print("\n1. Buat pengaduan")
-    print("2. Cek status pengaduan")
-    menu = input("Pilih menu: ")
+def buat_pengaduan():
+    data = baca_csv(FILE_ADU)
+    print("\n=== FORM PENGADUAN FASILITAS ===")
 
-    idPenghuni = input("Masukkan ID penghuni (contoh P001): ").strip().upper()
+    pakai_identitas = input("Gunakan identitas? (y/n): ").lower()
+    if pakai_identitas == "y":
+        id_penghuni = input("Masukkan ID penghuni (contoh P001): ").upper()
+        penghuni = next((p for p in baca_csv(FILE_PENGHUNI) if p["ID_Penghuni"] == id_penghuni), None)
+        if penghuni is None:
+            print("ID penghuni tidak ditemukan.")
+            return
+        nama, identitas = penghuni["Nama"], "Ya"
+    else:
+        id_penghuni, nama, identitas = "", "Anonim", "Tidak"
 
-    if idPenghuni in filePenghuni["ID_Penghuni"].values:
+    fasilitas = input("Fasilitas yang rusak: ")
+    deskripsi = input("Deskripsi kerusakan: ")
 
-        # Mengambil data penghuni yang login
-        index_penghuni = filePenghuni[
-            filePenghuni["ID_Penghuni"] == idPenghuni
-        ].index[0]
+    nomor = max([int(d["ID_Pengaduan"][1:]) for d in data], default=0) + 1
+    data.append({"ID_Pengaduan": f"A{nomor:03d}", "ID_Penghuni": id_penghuni, "Nama": nama,
+                 "Fasilitas": fasilitas, "Deskripsi": deskripsi,
+                 "Identitas": identitas, "Status": "Menunggu"})
+    simpan_pengaduan(data)
+    print(f"\nPengaduan A{nomor:03d} terkirim! Status: Menunggu")
 
-        nama = filePenghuni.loc[index_penghuni, "Nama"]
 
-        # ---------- Buat pengaduan ----------
-        if menu == "1":
-            fasilitas = input("Fasilitas yang rusak: ")
-            deskripsi = input("Deskripsi kerusakan: ")
+def lihat_pengaduan():
+    data = baca_csv(FILE_ADU)
+    print("\n=== DAFTAR PENGADUAN ===")
+    if not data:
+        print("Belum ada pengaduan.")
+    for d in data:
+        print(f"[{d['ID_Pengaduan']}] {d['Nama']} | {d['Fasilitas']} | {d['Deskripsi']} | {d['Status']}")
+    return data
 
-            if fasilitas.strip() == "" or deskripsi.strip() == "":
-                print("Fasilitas dan deskripsi tidak boleh kosong!")
 
-            else:
-                # Membuat ID pengaduan baru (A001, A002, ...)
-                if filePengaduan.empty:
-                    nomor = 1
-                else:
-                    nomor = filePengaduan["ID_Pengaduan"].str[1:].astype(int).max() + 1
+def ubah_status():
+    data = lihat_pengaduan()
+    if not data:
+        return
 
-                idBaru = f"A{nomor:03d}"
+    id_pilih = input("\nMasukkan ID pengaduan (contoh A001): ").upper()
+    status = {"1": "Menunggu", "2": "Diproses", "3": "Selesai"}
 
-                # Menambah pengaduan baru
-                filePengaduan.loc[len(filePengaduan)] = [
-                    idBaru, idPenghuni, nama, fasilitas, deskripsi, "Ya", "Menunggu"
-                ]
+    for d in data:
+        if d["ID_Pengaduan"] == id_pilih:
+            print("1. Menunggu\n2. Diproses\n3. Selesai")
+            pilih = input("Pilih status baru: ")
+            if pilih not in status:
+                print("Pilihan tidak valid.")
+                return
+            d["Status"] = status[pilih]
+            simpan_pengaduan(data)
+            print("Status pengaduan berhasil diperbarui!")
+            return
 
-                # Menyimpan perubahan ke CSV
-                filePengaduan.to_csv(
-                    "data_PENGADUAN.csv",
-                    index=False
-                )
+    print("ID pengaduan tidak ditemukan.")
 
-                print("\nPengaduan", idBaru, "berhasil dikirim!")
-                print("Status: Menunggu")
 
-        # ---------- Cek status pengaduan ----------
-        elif menu == "2":
-            hasil =
+def menu_penghuni():
+    while True:
+        print("\n=== MENU PENGHUNI ===")
+        print("1. Buat pengaduan\n2. Kembali")
+        pilih = input("Pilih menu: ")
+        if pilih == "1":
+            buat_pengaduan()
+        elif pilih == "2":
+            break
+        else:
+            print("Pilihan tidak valid!")
+
+
+def menu_admin():
+    while True:
+        print("\n=== MENU ADMIN ===")
+        print("1. Lihat daftar pengaduan\n2. Perbarui status pengaduan\n3. Kembali")
+        pilih = input("Pilih menu: ")
+        if pilih == "1":
+            lihat_pengaduan()
+        elif pilih == "2":
+            ubah_status()
+        elif pilih == "3":
+            break
+        else:
+            print("Pilihan tidak valid!")
+
+
+# Program utama (hanya jalan kalau file ini dijalankan langsung)
+if __name__ == "__main__":
+    while True:
+        print("\n==============================")
+        print("          KOSTERA")
+        print("   LAYANAN PENGADUAN KOS")
+        print("==============================")
+        print("1. Penghuni\n2. Admin\n3. Keluar")
+        pilih = input("Pilih menu: ")
+        if pilih == "1":
+            menu_penghuni()
+        elif pilih == "2":
+            menu_admin()
+        elif pilih == "3":
+            print("Terima kasih!")
+            break
+        else:
+            print("Pilihan tidak valid!")
    
 # SAFFA
 import os
