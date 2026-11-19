@@ -14,10 +14,12 @@ print("Lokasi program:", os.path.dirname(__file__))
 print("Lokasi terminal:", os.getcwd())
 print("File CSV ditemukan:", os.path.exists("data_barang.csv"))
 
+
 import pandas as pd
 
 def tampilkan_data():
-    fileDB = pd.read_csv("data_barang.csv")
+    lokasi_file = os.path.join(os.path.dirname(__file__), "data_barang.csv")
+    fileDB = pd.read_csv(lokasi_file)
     print("========= KATALOG BARANG =========")
     
     print(fileDB.to_string(index=False))
