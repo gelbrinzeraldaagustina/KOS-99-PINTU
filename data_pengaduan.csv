@@ -1,5 +1,3 @@
-ID_Pengaduan,ID_Penghuni,Nama,Fasilitas,Deskripsi,Identitas,Status
-A001,P001,Revi Pertiwi,Kamar Mandi,Saluran air tersumbat,Ya,Menunggu
-A002,P002,Rafa Alexander,AC,AC tidak dingin,Ya,Diproses
-A003,P003,Citra Amelia,Listrik,Lampu kamar mati,Ya,Selesai
-A004,P002,Rafa Alexander,bocor di kamar,bocor air hujan,Ya,Menunggu
+ID_Pengaduan,Username,No_Kamar,Fasilitas,Deskripsi,Status
+P001,saffa,K01,AC,tidak dingin,Diproses
+P002,zera,K11,Lampu,mati,Selesai
