@@ -41,19 +41,6 @@ def siapin_file():
         pd.DataFrame(tagihan).to_csv("data_TAGIHAN.csv", index=False)
 
     try:
-        pd.read_csv("data_PEMBAYARAN.csv")
-    except FileNotFoundError:
-        pembayaran = {
-            'ID_Pembayaran' : [],
-            'Username' : [],
-            'ID_Tagihan' : [],
-            'Jumlah' : [],
-            'Tanggal' : [],
-            'Status' : []
-        }
-        pd.DataFrame(pembayaran).to_csv("data_PEMBAYARAN.csv", index=False)
-
-    try:
         pd.read_csv("data_PENGADUAN.csv")
     except FileNotFoundError:
         pengaduan = {
