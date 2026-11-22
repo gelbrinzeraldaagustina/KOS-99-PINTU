@@ -1,2 +1,4 @@
-ID_Pesanan,Username,No_Kamar,Nama_Barang,Harga,Jumlah_Barang,Total,Tanggal,Status
-O001,putri,K12,Sampo Sachet,1500,3,4500,16-11-2016,Selesai
+ID_Pesanan,Nama,No_Kamar,Nama_Barang,Harga,Jumlah_Barang,Total,Tanggal,Status
+P001,saffa,K02,Detergen,15000,1,15000,01-10-2026,Diterima
+P002,vale,K11,Sabun,15000,1,15000,01-11-2026,Diproses
+O003,Saffanah,K02,Mie Instan Goreng,3500,4,14000,22-11-2026,Menunggu Konfirmasi

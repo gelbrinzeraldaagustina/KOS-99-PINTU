@@ -1,7 +1,7 @@
 No_Kamar,Tipe,Harga_Sewa,Status,Penghuni
-101,Single,500000,Kosong,
-102,Single,500000,Terisi,
-103,Single,500000,Kosong,
-201,Double,750000,Terisi,
-202,Double,750000,Terisi,
-203,Double,750000,Kosong,
+K01,Single,500000,Kosong,
+K02,Single,500000,Terisi,saffa
+K03,Single,500000,Terisi,vale
+K11,Double,750000,Terisi,zera
+K12,Double,750000,Terisi,putri
+K13,Double,750000,Kosong,
