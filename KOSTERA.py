@@ -638,7 +638,8 @@ def pesan_Barang(username, nama):
             str(harga), str(jumlah), str(total), date.today().strftime('%d-%m-%Y'), 'Menunggu Konfirmasi'
         ]
         simpan_data(pesanan, 'data_PESANAN.csv')
-        print(f'Pesanan diantar. Total belanja: {rupiah(total)}')
+        print('\nPesanan berhasil dibuat!')
+        print(f'Berikut total belanjaanmu ->> {rupiah(total)}')
         enter_lanjut()
 
 
