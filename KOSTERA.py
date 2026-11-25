@@ -581,7 +581,7 @@ def MenuBarang_Admin():
                 harga = input('Harga Baru: ').strip()
                 stok = input('Stok Baru: ').strip()
                 if nama:
-                    barang.loc[nomor, 'Nama'] = nama
+                    barang.loc[nomor, 'Nama_Barang'] = nama
                 if harga:
                     if harga.isdigit() and int(harga) > 0:
                         barang.loc[nomor, 'Harga'] = harga
@@ -616,7 +616,7 @@ def pesan_Barang(username, nama):
         return
     nomor = pilih_angka(len(tersedia))
     
-    if nomor == '-1':
+    if nomor == -1:
         return
     try:
         jumlah = int(input('Jumlah barang yang dipesan: '))
