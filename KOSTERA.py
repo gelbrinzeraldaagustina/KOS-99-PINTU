@@ -616,7 +616,7 @@ def pesan_Barang(username, nama):
         return
     nomor = pilih_angka(len(tersedia))
     
-    if nomor == '1':
+    if nomor == '-1':
         return
     try:
         jumlah = int(input('Jumlah barang yang dipesan: '))
