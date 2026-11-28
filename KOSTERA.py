@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from datetime import date
+import calendar
 
 def siapin_file():
     try:
@@ -119,6 +120,71 @@ def bikin_id(data, kolom, awalan):
         angka_terakhir = data[kolom].str[len(awalan):].astype(int).max()
         nomor = angka_terakhir + 1
     return f'{awalan}{nomor:03d}'
+
+def minta_angka(pesan, minimal=1, maksimal=None):
+    """Untuk input angka. Tolak huruf/minus/0/melebihi stok. Kalau salah, minta lagi input yang sama."""
+    while True:
+        ketik = input(pesan).strip()
+        if ketik == '':
+            print('Input tidak boleh kosong! Harus angka. Coba lagi:')
+            continue
+        if ketik.startswith('-'):
+            print('Angka tidak boleh minus! Coba lagi:')
+            continue
+        if not ketik.isdigit():
+            print('Harus berupa angka! Jangan isi huruf/teks. Coba lagi:')
+            continue
+        angka = int(ketik)
+        if angka < minimal:
+            print(f'Angka minimal {minimal}! Tidak boleh 0 atau minus. Coba lagi:')
+            continue
+        if maksimal is not None and angka > maksimal:
+            print(f'Angka tidak boleh melebihi {maksimal}! (Stok hanya {maksimal}). Coba lagi:')
+            continue
+        return angka
+
+def minta_bulan():
+    """Khusus Bulan Tagihan. Salah -> minta Bulan lagi."""
+    daftar_bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
+    while True:
+        bulan = input('Bulan Tagihan (contoh: November 2026): ').strip()
+        if bulan == '':
+            print('Bulan tidak valid! Tidak boleh kosong. Coba lagi:')
+            continue
+        pecah = bulan.split()
+        if len(pecah) != 2:
+            print('Bulan tidak valid! Format harus "Nama Bulan + Tahun", contoh: November 2026. Coba lagi:')
+            continue
+        nama_bulan = pecah[0].capitalize()  
+        tahun = pecah[1]
+        if nama_bulan not in daftar_bulan:
+            print('Bulan tidak valid! Nama bulan salah. Coba lagi:')
+            continue
+        if not tahun.isdigit() or len(tahun) != 4:
+            print('Bulan tidak valid! Tahun harus 4 angka, contoh: 2026. Coba lagi:')
+            continue
+        return f"{nama_bulan} {tahun}"
+
+def minta_tanggal_dari_bulan(bulan):
+    daftar_bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
+    nama_bulan, tahun_str = bulan.split()
+    nomor_bulan = daftar_bulan.index(nama_bulan) + 1  # November -> 11
+    tahun = int(tahun_str)
+    max_hari = calendar.monthrange(tahun, nomor_bulan)[1]
+
+    while True:
+        ketik = input(f'Tanggal Jatuh Tempo (1-{max_hari}) untuk {bulan}: ').strip()
+        if ketik == '':
+            print('Tanggal tidak valid! Tidak boleh kosong. Coba lagi:')
+            continue
+        if ketik.startswith('-') or not ketik.isdigit():
+            print('Tanggal harus angka! Coba lagi:')
+            continue
+        hari = int(ketik)
+        if hari < 1 or hari > max_hari:
+            print(f'Tanggal tidak valid! {nama_bulan} {tahun} hanya sampai tanggal {max_hari}. Coba lagi:')
+            continue
+        return f"{hari:02d}-{nomor_bulan:02d}-{tahun}"
 
 def pilih_angka(jumlah):
     ketik = input('Pilih nomor (0 untuk batal): ')
@@ -272,22 +338,19 @@ def menu_Kamar():
         print('0. Kembali')
         pilihan = input('Pilih menu: ')
         if pilihan == '1':
-            nomor = input("Nomor kamar: ").strip()
-            if nomor == '' or nomor in kamar ['No_Kamar'].tolist():
-                print('Nomor kamar tidak tersedia atau sudah ada.')
-            else:
+            while True:
+                nomor = input("Nomor kamar: ").strip()
+                if nomor == '': print('Nomor kamar tidak boleh kosong! Coba lagi:'); continue
+                if nomor in kamar['No_Kamar'].tolist(): print('Nomor kamar sudah ada! Coba lagi:'); continue
+                break
+            
+            while True:
                 tipe = input('Tipe Kamar (Single/Double): ').strip().capitalize()
-                try:
-                    harga = int(input('Harga Sewa: '))
-                    if tipe not in ['Single', 'Double'] or harga <= 0:
-                        print('Tipe kamar harus Single atau Double dan harga tidak valid!')
-                    else:
-                        kamar.loc[len(kamar)] = [nomor, tipe, str(harga), 'Kosong', '']
-                        simpan_data(kamar, 'data_KAMAR.csv')
-                        print('Kamar baru berhasil ditambahkan')
-                except ValueError:
-                    print('Harga sewa harus berupa angka.')
-
+                if tipe not in ['Single', 'Double']: print('Tipe harus Single atau Double! Coba lagi:'); continue
+                break
+            harga = minta_angka('Harga Sewa: ', minimal=1)
+            kamar.loc[len(kamar)] = [nomor, tipe, str(harga), 'Kosong', '']
+            simpan_data(kamar, 'data_KAMAR.csv'); print('Kamar baru berhasil ditambahkan')
         if pilihan == '2':
             nomor = pilih_angka(len(kamar))
             if nomor != -1:
@@ -433,10 +496,9 @@ def MenuTagihan_Admin():
             user = bacakan('data_USER.csv')
             penghuni = user[user['Role'] == 'penghuni']
             kamar = bacakan('data_KAMAR.csv')
-            daftar_bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 
-                            'Agustus', 'September', 'Oktober', 'November', 'Desember']
+            
             while True:
-                bulan = input('Bulan Tagihan (contoh: November 2026): ').strip()
+                bulan = bulan = minta_bulan().strip()
                 if bulan == '':
                     print('Bulan tidak valid. Tidak boleh kosong!')
                     continue
@@ -445,7 +507,7 @@ def MenuTagihan_Admin():
                     print('Bulan tidak valid! Format harus "Nama bulan + Tahun", contoh: November 2026')
                     continue
                 nama_bulan, tahun = pecah[0].capitalize(), pecah[1]
-                if nama_bulan not in daftar_bulan:
+                if nama_bulan not in minta_bulan:
                     print('Bulan tidak valid. Nama bulan salah! Contoh: Januari, Februari, ... Desember')
                     continue
                 if not tahun.isdigit() or len(tahun) != 4:
@@ -455,7 +517,7 @@ def MenuTagihan_Admin():
                 break
 
             while True:
-                jatuh_tempo = input('Tanggal Jatuh Tempo (dd-mm-yyyy): ').strip()
+                jatuh_tempo = minta_tanggal_dari_bulan(bulan).strip()
                 if jatuh_tempo == '':
                     print('Tanggal tidak valid. Tidak boleh kosong!')
                     continue
@@ -640,36 +702,21 @@ def pesan_Barang(username, nama):
     tersedia = barang[pd.to_numeric(barang['Stok']) > 0].reset_index(drop=True)
     tampilkan_data(tersedia, ['Nama_Barang', 'Harga', 'Stok'])
     if len(tersedia) == 0:
-        enter_lanjut()
-        return
+        enter_lanjut(); return
     nomor = pilih_angka(len(tersedia))
-    
     if nomor == -1:
-        return
-    try:
-        jumlah = int(input('Jumlah barang yang dipesan: '))
-    except ValueError:
-        print('Jumlah barang harus berupa angka!')
-        enter_lanjut()
-        return  
+        print('Pemesanan dibatalkan.'); enter_lanjut(); return
     stok = int(tersedia.loc[nomor, 'Stok'])
-    if jumlah <= 0 or jumlah > stok:
-        print('Jumlah barang tidak valid/melebihi stok!')
-    else:
-        harga = int(tersedia.loc[nomor, 'Harga'])
-        total = harga * jumlah
-        user = bacakan('data_USER.csv')
-        akun = user[user['Username'] == username].iloc[0]
-        pesanan = bacakan('data_PESANAN.csv')
-        pesanan.loc[len(pesanan)] = [
-            bikin_id(pesanan, 'ID_Pesanan', 'O'), nama, akun['No_Kamar'], tersedia.loc[nomor, 'Nama_Barang'], 
-            str(harga), str(jumlah), str(total), date.today().strftime('%d-%m-%Y'), 'Menunggu Konfirmasi'
-        ]
-        simpan_data(pesanan, 'data_PESANAN.csv')
-        print('\nPesanan berhasil dibuat!')
-        print(f'Berikut total belanjaanmu ->> {rupiah(total)}')
-        enter_lanjut()
-
+    jumlah = minta_angka('Jumlah barang yang dipesan: ', minimal=1, maksimal=stok)
+    harga = int(tersedia.loc[nomor, 'Harga']); total = harga * jumlah
+    user = bacakan('data_USER.csv'); akun = user[user['Username'] == username].iloc[0]
+    pesanan = bacakan('data_PESANAN.csv')
+    pesanan.loc[len(pesanan)] = [bikin_id(pesanan, 'ID_Pesanan', 'O'), nama, akun['No_Kamar'], tersedia.loc[nomor, 'Nama_Barang'], str(harga), str(jumlah), str(total), date.today().strftime('%d-%m-%Y'), 'Menunggu Konfirmasi']
+    simpan_data(pesanan, 'data_PESANAN.csv')
+    print('\nPesanan berhasil dibuat! Status: Menunggu Konfirmasi')
+    print(f'Berikut total belanjaanmu ->> {rupiah(total)}')
+    print('Cek di menu "Lihat Pesanan Saya", pesananmu sudah muncul.')
+    enter_lanjut()
 
 def MenuPesanan_Admin():
     while True:
@@ -736,8 +783,12 @@ def MenuPesanan_Admin():
 def pesananku(username):
     tampilkan_judul('PESANAN SAYA')
     pesanan = bacakan('data_PESANAN.csv')
-    punyaku = pesanan[pesanan['Nama'] == username]
-    tampilkan_data(punyaku, ['ID_Pesanan', 'Nama_Barang', 'Harga', 'Jumlah_Barang', 'Total', 'Tanggal', 'Status'])
+    user = bacakan('data_USER.csv'); akun = user[user['Username'] == username].iloc[0]
+    punyaku = pesanan[(pesanan['Nama'] == akun['Nama']) | (pesanan['Nama'] == username) | (pesanan['No_Kamar'] == akun['No_Kamar'])]
+    if len(punyaku) == 0:
+        print('Belum ada pesanan.')
+    else:
+        tampilkan_data(punyaku, ['ID_Pesanan', 'Nama_Barang', 'Harga', 'Jumlah_Barang', 'Total', 'Tanggal', 'Status'])
     enter_lanjut()
 
 
