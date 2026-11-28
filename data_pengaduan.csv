@@ -1,4 +1,5 @@
 ID_Pengaduan,Nama,No_Kamar,Fasilitas,Deskripsi,Tanggal,Status
 P001,Saffanah,K01,AC,tidak dingin,21-11-2026,Diproses
 P002,Putriii,K11,Lampu,mati,02-10-2026,Selesai
-P003,Saffanah,K02,kipas,kotor,22-11-2026,Diproses
+P003,Saffanah,K02,kipas,kotor,22-11-2026,Selesai
+P004,Saffanah,K02,kamar mandi,airnya kotor,26-11-2026,Diproses

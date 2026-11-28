@@ -61,7 +61,7 @@ def siapin_file():
             'No' : ['B001', 'B002', 'B003', 'B004', 'B005', 'B006', 'B007', 'B008', 'B009', 'B010'],
             'Nama_Barang' : ['Air Mineral 600ml', 'Mie Instan Goreng', 'Mie Instan Kuah', 'Deterjen Sachet', 'Air Galon',
                        'Kopi Sachet', 'Teh', 'Tisu', 'Sabun Mandi', 'Sampo Sachet'],
-            'Harga' : [4000, 3500, 3500, 2000, 22000, 2000, 5000, 7000, 5000, 1500],
+            'Harga' : [4000, 3500, 3500, 2000, 3000, 2000, 5000, 7000, 5000, 1500],
             'Stok' : [100, 50, 200, 150, 30, 200, 100, 80, 120, 90]
         }
         pd.DataFrame(barang).to_csv("data_BARANG.csv", index=False)
@@ -148,6 +148,9 @@ def tampilkan_data(data, kolom):
             isi.append(str(baris[nama]))
         print(' | '.join(isi))
         nomor = nomor + 1
+
+
+# ========================= LOGIN ==============================
 
 def masuk():
     tampilkan_judul('LOGIN')
@@ -430,15 +433,38 @@ def MenuTagihan_Admin():
             user = bacakan('data_USER.csv')
             penghuni = user[user['Role'] == 'penghuni']
             kamar = bacakan('data_KAMAR.csv')
-            bulan = input('Bulan Tagihan (contoh: November 2026): ').strip()
-            jumlah = input('Jumlah Tagihan: ').strip()
-            jatuh_tempo = input('Tanggal Jatuh Tempo (dd-mm-yyyy): ').strip()
-            try:
-                date.strptime(jatuh_tempo, '%d-%m-%Y')
+            daftar_bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 
+                            'Agustus', 'September', 'Oktober', 'November', 'Desember']
+            while True:
+                bulan = input('Bulan Tagihan (contoh: November 2026): ').strip()
                 if bulan == '':
-                    raise ValueError
-            except ValueError:
-                print('Format tanggal/bulan tidak valid!')
+                    print('Bulan tidak valid. Tidak boleh kosong!')
+                    continue
+                pecah = bulan.split()
+                if len(pecah) != 2:
+                    print('Bulan tidak valid! Format harus "Nama bulan + Tahun", contoh: November 2026')
+                    continue
+                nama_bulan, tahun = pecah[0].capitalize(), pecah[1]
+                if nama_bulan not in daftar_bulan:
+                    print('Bulan tidak valid. Nama bulan salah! Contoh: Januari, Februari, ... Desember')
+                    continue
+                if not tahun.isdigit() or len(tahun) != 4:
+                    print('Bulan tidak valid. Tahun harus 4 angka! Contoh: 2026')
+                    continue
+                bulan = f'{nama_bulan} {tahun}'
+                break
+
+            while True:
+                jatuh_tempo = input('Tanggal Jatuh Tempo (dd-mm-yyyy): ').strip()
+                if jatuh_tempo == '':
+                    print('Tanggal tidak valid. Tidak boleh kosong!')
+                    continue
+                try:
+                    date.strptime(jatuh_tempo, '%d-%m-%Y')
+                    break
+                except ValueError:
+                    print('Tanggal tidak valid. Format harus dd-mm-yyyy dan tanggalnya harus ada! Contoh; 10-11-2026')
+                    continue
 
             buat = 0
             for _, orang in penghuni.iterrows():
@@ -449,18 +475,20 @@ def MenuTagihan_Admin():
                         jumlah = data_kamar.iloc[0]['Harga_Sewa']
                         tagihan.loc[len(tagihan)] = [
                             bikin_id(tagihan, 'ID_Tagihan', 'T'), orang['Username'],
-                            bulan, jumlah, jatuh_tempo, 'Belum Lunas'
+                            bulan, str(jumlah), jatuh_tempo, 'Belum Lunas'
                         ]
                         buat += 1
             simpan_data(tagihan, 'data_TAGIHAN.csv')
-            print(f'{buat} tagihan baru berhasil dibuat untuk bulan {bulan}.')
-        
+            print(f'{buat} tagihan baru berhasil dibuat untuk bulan {bulan}. Jumlah otomatis sesuai harga kamar.')
+
         elif pilihan == '2':
             nomor = pilih_angka(len(tagihan))
             if nomor != -1:
                 status_baru = input('Status Baru (Belum Lunas/Lunas): ').strip().capitalize()
                 if status_baru not in ['Belum Lunas', 'Lunas']:
                     print('Status tidak valid!')
+                    continue
+                    break
                 else:
                     tagihan.loc[nomor, 'Status'] = status_baru
                     simpan_data(tagihan, 'data_TAGIHAN.csv')
@@ -560,7 +588,7 @@ def MenuBarang_Admin():
         pilihan = input('Pilih menu: ')
 
         if pilihan == '1':
-            nama = input('Nama Barang: ').strip()
+            nama = input('Nama Barang: ').strip()       
             try:
                 harga = int(input('Harga Barang: '))
                 stok = int(input('Stok Barang: '))
@@ -687,7 +715,7 @@ def MenuPesanan_Admin():
 
                     for i, b in barang.iterrows():
                         if b['Nama_Barang'] == nama_pesan:
-                            barang.loc[i, 'Stok'] = stok_sekarang - jumlah
+                            barang.loc[i, 'Stok'] = str(stok_sekarang - jumlah)
                             break
 
                     simpan_data(barang, 'data_BARANG.csv')
