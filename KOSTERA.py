@@ -587,53 +587,50 @@ def bikin_aduan(username, nama):
     tampilkan_judul('BUAT ADUAN FASILITAS KOST')
     user = bacakan('data_USER.csv')
     akun = user[user['Username'] == username].iloc[0]
-    fasilitas = input('Fasilitas apa yang bermasalah? ').strip()
-    deskripsi = input('Deskripsikan masalahnya: ').strip()
-    if fasilitas == '' or deskripsi == '':
-        print('Fasilitas dan deskripsi tidak boleh kosong!')
-    else:
-        data = bacakan('data_PENGADUAN.csv')
-        data.loc[len(data)] = [
-            bikin_id(data, 'ID_Pengaduan', 'P'), nama, 
-            akun['No_Kamar'], fasilitas, deskripsi, date.today().strftime('%d-%m-%Y'), 'Diproses'
-        ]
-        simpan_data(data, 'data_PENGADUAN.csv')
-        print('Aduan berhasil dibuat, menunggu konfirmasi admin.')
+    fasilitas = input('Fasilitas apa yang bermasalah? ')  
+    deskripsi = input('Deskripsikan masalahnya: ')  
+    data = bacakan('data_PENGADUAN.csv')
+    data.loc[len(data)] = [bikin_id(data, 'ID_Pengaduan', 'P'), nama, akun['No_Kamar'], fasilitas, deskripsi, date.today().strftime('%d-%m-%Y'), 'Menunggu']
+    simpan_data(data, 'data_PENGADUAN.csv')
+    print('Aduan berhasil dibuat! Status: Menunggu')
+    print('Cek di menu "Lihat Pengaduan Saya", aduanmu sudah muncul.')
     enter_lanjut()
-
 
 def MenuPengaduan_Admin():
     while True:
         tampilkan_judul('KELOLA PENGADUAN')
         aduan = bacakan('data_PENGADUAN.csv')
-        tampilkan_data(aduan, ['ID_Pengaduan', 'Nama', 'No_Kamar', 'Fasilitas', 'Deskripsi', 'Status'])
+        tampilkan_data(aduan, ['ID_Pengaduan', 'Nama', 'No_Kamar', 'Fasilitas', 'Deskripsi', 'Tanggal', 'Status'])
         print('\n1. Perbarui Status Pengaduan')
         print('0. Kembali')
-        pilihan = input('Pilih menu: ')
-
+        pilihan = input('Pilih menu: ').strip()
         if pilihan == '1':
             nomor = pilih_angka(len(aduan))
             if nomor != -1:
-                status_baru = input('Status Baru (Menunggu/Diproses/Selesai): ').strip().capitalize()
-                if status_baru not in ['Menunggu', 'Diproses', 'Selesai']:
-                    print('Status tidak valid!')
-                else:
-                    aduan.loc[nomor, 'Status'] = status_baru
-                    simpan_data(aduan, 'data_PENGADUAN.csv')
-                    print('Status pengaduan berhasil diperbarui.')
-
+                while True:
+                    status_baru = input('Status Baru (Menunggu/Diproses/Selesai): ').strip().capitalize()
+                    if status_baru not in ['Menunggu', 'Diproses', 'Selesai']:
+                        print('Status tidak valid! Coba lagi:')
+                        continue
+                    break
+                aduan.loc[nomor, 'Status'] = status_baru
+                simpan_data(aduan, 'data_PENGADUAN.csv')
+                print('Status pengaduan berhasil diperbarui.')
         elif pilihan == '0':
             return
-        else:
-            print('Maaf pilihan menu tidak tersedia!')
-            enter_lanjut()
+        enter_lanjut()
 
 
 def pengaduanku(username):
     tampilkan_judul('PENGADUAN SAYA')
     aduan = bacakan('data_PENGADUAN.csv')
-    punyaku = aduan[aduan['Nama'] == username]
-    tampilkan_data(punyaku, ['ID_Pengaduan', 'Fasilitas', 'Deskripsi', 'Status'])
+    user = bacakan('data_USER.csv')
+    akun = user[user['Username'] == username].iloc[0]
+    punyaku = aduan[(aduan['Nama'] == akun['Nama']) | (aduan['Nama'] == username) | (aduan['No_Kamar'] == akun['No_Kamar'])]
+    if len(punyaku) == 0:
+        print('Belum ada pengaduan.')
+    else:
+        tampilkan_data(punyaku, ['ID_Pengaduan', 'Fasilitas', 'Deskripsi', 'Tanggal', 'Status'])
     enter_lanjut()
 
 
